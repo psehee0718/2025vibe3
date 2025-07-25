@@ -1,5 +1,3 @@
-
-
 import streamlit as st
 from streamlit_folium import st_folium
 import folium
@@ -55,8 +53,3 @@ else:
 if st.button("🗑️ 모든 북마크 초기화"):
     st.session_state.bookmarks = []
     st.success("❌ 모든 북마크가 삭제되었습니다.")
-
-# 전체 리셋 기능
-if st.button("🗑️ 전체 북마크 초기화"):
-    st.session_state.bookmarks = []
-    st.success("모든 북마크가 삭제되었습니다.")
