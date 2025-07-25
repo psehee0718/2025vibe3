@@ -2,15 +2,18 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# CSV 파일 불러오기
-@st.cache_data
-def load_data():
-    df = pd.read_csv("나노융합제품의_제품화단계_20250725133453.csv", encoding="cp949")
-    df.columns = df.iloc[0]  # 첫 번째 행을 컬럼으로 사용
-    df = df[1:]  # 본 데이터만 남김
-    return df
+st.set_page_config(page_title="나노융합제품 분석", layout="wide")
+st.title("🧪 나노융합제품의 산업별·연도별 분석 대시보드")
 
-df = load_data()
+# ✅ 파일 업로드 받기
+uploaded_file = st.file_uploader("📂 나노융합제품 CSV 파일 업로드", type=["csv"])
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file, encoding="cp949")
+
+    # 헤더 설정
+    df.columns = df.iloc[0]
+    df = df[1:]
 
 # 연도 및 관련 컬럼 정의
 year_list = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023']
