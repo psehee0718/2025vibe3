@@ -1,6 +1,11 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+
+try:
+    import plotly.express as px
+except ModuleNotFoundError:
+    st.error("❌ Plotly가 설치되어 있지 않습니다. 아래 명령어로 설치하세요:\n\n`pip install plotly`")
+    st.stop()
 
 st.set_page_config(page_title="연령별 인구 시각화", layout="wide")
 
@@ -46,5 +51,5 @@ if uploaded_file:
     except Exception as e:
         st.error(f"❌ 오류 발생: {e}")
 else:
-    st.info("좌측 사이드바에서 CSV 파일을 업로드하세요.")
+    st.info("좌측에서 CSV 파일을 업로드하세요.")
 
