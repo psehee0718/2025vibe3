@@ -1,61 +1,87 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-try:
-    import plotly.express as px
-except ModuleNotFoundError:
-    st.error("❌ Plotly가 설치되어 있지 않습니다. 아래 명령어로 설치하세요:\n\n`pip install plotly`")
-    st.stop()
+st.set_page_config(page_title="📊 인구 통계 시각화", layout="wide")
+st.title("👥 지역·성별·연령별 인구 시각화 대시보드")
 
-st.set_page_config(page_title="지역별 인구 시각화", layout="wide")
-
-st.title("📍 지역별 연령대 인구 시각화")
-st.markdown("업로드한 CSV 파일에서 **특정 지역**을 선택해 연령별 인구 분포를 시각화합니다.")
-
-# CSV 업로드
-uploaded_file = st.file_uploader("📂 CSV 파일 업로드 (예: 합계.csv)", type=["csv"])
+# 파일 업로드
+uploaded_file = st.file_uploader("📂 CSV 파일 업로드 (합계.csv 또는 남녀구분.csv)", type="csv")
 
 if uploaded_file:
     try:
         df = pd.read_csv(uploaded_file, encoding="cp949")
     except:
-        st.error("❌ CSV 파일을 CP949 인코딩으로 불러올 수 없습니다.")
+        st.error("❌ CSV 파일을 CP949 인코딩으로 읽을 수 없습니다.")
         st.stop()
 
-    # 연령 컬럼 추출
-    age_columns = [col for col in df.columns if "세" in col and "계" in col]
-    if not age_columns:
-        st.error("⚠️ 연령대가 포함된 '계_세' 형식의 컬럼이 없습니다.")
-        st.stop()
-
-    # 숫자화
-    df_age = df[["행정구역"] + age_columns].copy()
-    for col in age_columns:
-        df_age[col] = df_age[col].astype(str).str.replace(",", "").astype(int)
-
-    # 선택 가능한 지역 리스트
-    region_options = df_age["행정구역"].unique().tolist()
-    region = st.selectbox("🏙️ 시각화할 지역 선택", region_options)
-
-    # 선택된 지역의 데이터만 추출
-    region_df = df_age[df_age["행정구역"] == region]
-
-    if region_df.empty:
-        st.warning("선택한 지역의 데이터가 없습니다.")
+    # ------------------------- 성별 선택 -------------------------
+    # 열 이름에 따라 성별 컬럼 추론
+    all_columns = df.columns.tolist()
+    if any("_남_" in col for col in all_columns):
+        gender_mode = st.radio("성별 선택", ["전체 (합계)", "남", "여"], horizontal=True)
     else:
-        # Long 형태로 변환
-        df_long = region_df.melt(id_vars="행정구역", var_name="연령", value_name="인구수")
-        df_long["연령"] = df_long["연령"].str.extract(r"(\d+세)").fillna("100세 이상")
+        gender_mode = "전체 (합계)"  # 남녀구분 데이터가 없을 경우 기본
 
-        # 시각화
+    # ------------------------- 연령 컬럼 필터 -------------------------
+    if gender_mode == "남":
+        age_columns = [col for col in df.columns if "세" in col and "_남_" in col]
+    elif gender_mode == "여":
+        age_columns = [col for col in df.columns if "세" in col and "_여_" in col]
+    else:
+        age_columns = [col for col in df.columns if "세" in col and "계" in col]
+
+    if not age_columns:
+        st.warning("⚠️ 연령대 관련 컬럼을 찾을 수 없습니다.")
+        st.stop()
+
+    # 숫자형 처리
+    df_filtered = df[["행정구역"] + age_columns].copy()
+    for col in age_columns:
+        df_filtered[col] = df_filtered[col].astype(str).str.replace(",", "").astype(int)
+
+    # ------------------------- 지역 선택 -------------------------
+    all_regions = df_filtered["행정구역"].unique().tolist()
+    selected_regions = st.multiselect("📍 지역 선택 (다중 선택 가능)", options=all_regions, default=all_regions[:1])
+
+    df_region = df_filtered[df_filtered["행정구역"].isin(selected_regions)]
+
+    if df_region.empty:
+        st.warning("선택한 지역의 데이터가 없습니다.")
+        st.stop()
+
+    # ------------------------- 연령 필터 -------------------------
+    df_long = df_region.melt(id_vars="행정구역", var_name="연령", value_name="인구수")
+    df_long["연령"] = df_long["연령"].str.extract(r"(\d+세)").fillna("100세 이상")
+    df_long["연령순"] = df_long["연령"].str.replace("세", "").replace("100 이상", "100").astype(int)
+
+    age_range = st.slider("🎚️ 연령 범위 선택", 0, 100, (0, 100))
+    df_long = df_long[(df_long["연령순"] >= age_range[0]) & (df_long["연령순"] <= age_range[1])]
+
+    # ------------------------- 그래프 -------------------------
+    chart_type = st.selectbox("📊 차트 종류 선택", ["막대 그래프", "꺾은선 그래프"])
+
+    if chart_type == "막대 그래프":
         fig = px.bar(
             df_long,
             x="연령",
             y="인구수",
-            title=f"📊 {region}의 연령별 인구 분포",
-            labels={"연령": "연령대", "인구수": "인구 수"},
+            color="행정구역",
+            barmode="group",
+            title="📊 지역별 연령대 인구 비교",
         )
-        fig.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+    else:
+        fig = px.line(
+            df_long,
+            x="연령",
+            y="인구수",
+            color="행정구역",
+            markers=True,
+            title="📈 지역별 연령대 인구 추세",
+        )
+
+    fig.update_layout(xaxis_tickangle=-45)
+    st.plotly_chart(fig, use_container_width=True)
+
 else:
-    st.info("왼쪽에 CSV 파일을 업로드하세요.")
+    st.info("CSV 파일을 업로드하면 시각화를 시작할 수 있어요.")
