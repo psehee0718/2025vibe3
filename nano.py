@@ -14,7 +14,8 @@ if uploaded_file is not None:
     # 헤더 설정
     df.columns = df.iloc[0]
     df = df[1:]
-
+else:
+    st.warning("먼저 CSV 파일을 업로드해주세요.")
 # 연도 및 관련 컬럼 정의
 year_list = ['2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023']
 cols_total_revenue = [f"{y}.3" for y in year_list]  # 총매출액
