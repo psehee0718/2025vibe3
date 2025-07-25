@@ -1,6 +1,11 @@
+streamlit
+folium
+streamlit-folium
+
 import streamlit as st
 from streamlit_folium import st_folium
 import folium
+
 
 st.set_page_config(page_title="나만의 북마크 지도", layout="wide")
 
