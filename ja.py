@@ -1,7 +1,4 @@
-import streamlit as st  # ✅
-
-
-
+# streamlit_app.py
 
 import streamlit as st
 import networkx as nx
@@ -10,7 +7,7 @@ import streamlit.components.v1 as components
 
 # 페이지 설정
 st.set_page_config(page_title="죽음과 화학적 순환 시뮬레이션", layout="wide")
-st.title("죽음에서 순환으로: 생명체 분해와 인간 기술 시뮬레이션")
+st.title("죽음에서 생태계로: 생명체 분해와 인간 기술 시뮬레이션")
 
 # 네트워크 생성
 G = nx.DiGraph()
@@ -59,17 +56,20 @@ for node in net.nodes:
     else:
         node["color"] = "lightblue"
 
-# HTML로 저장 후 Streamlit 삽입
+# HTML 파일로 저장 (서버 환경 안전)
 html_file = "network.html"
-net.show(html_file)
+net.write_html(html_file, notebook=False)
+
+# Streamlit에 삽입
 with open(html_file, 'r', encoding='utf-8') as f:
     html_content = f.read()
 components.html(html_content, height=700)
 
-# 사이드바: 선택한 노드 정보 표시
+# 사이드바: 노드 선택 정보
 st.sidebar.header("단계/반응 선택")
 selected_node = st.sidebar.selectbox("노드 선택", list(nodes.keys()))
 st.sidebar.write(f"**{selected_node}**")
 st.sidebar.write(nodes[selected_node]["info"])
+
 
 
