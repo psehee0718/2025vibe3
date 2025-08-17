@@ -1,18 +1,27 @@
 # streamlit_app.py
-import streamlit as st
-from pyvis.network import Network
-import networkx as nx
+# --------------------------------------
+# 1. 필요한 모듈 설치
+# Streamlit Cloud에서는 requirements.txt에 아래 추가:
+# pyvis
+# networkx
+# streamlit
 
-# -------------------------------
-# 1. 페이지 타이틀
+import streamlit as st
+import networkx as nx
+from pyvis.network import Network
+import streamlit.components.v1 as components
+import os
+
+# --------------------------------------
+# 2. 페이지 설정
 st.set_page_config(page_title="죽음과 화학적 순환 시뮬레이션", layout="wide")
 st.title("죽음에서 생태계로: 생명체 분해와 인간 기술 시뮬레이션")
 
-# -------------------------------
-# 2. 네트워크 생성
+# --------------------------------------
+# 3. 네트워크 생성
 G = nx.DiGraph()
 
-# 노드 추가 (단계 + 산물)
+# 노드 정의 (단계 + 화학 반응 + 인간 기술)
 nodes = {
     "생물학적 죽음": {"type":"stage", "info":"세포와 장기 기능 상실"},
     "단백질 분해": {"type":"reaction", "info":"Protein + H2O → Amino acids → NH3 → NO3-"},
@@ -40,34 +49,18 @@ edges = [
     ("원소 순환", "바이오소재"),
     ("원소 순환", "그린 장례"),
 ]
-
 G.add_edges_from(edges)
 
-# -------------------------------
-# 3. Pyvis로 시각화
-net = Network(height="700px", width="100%", notebook=False, directed=True)
+# --------------------------------------
+# 4. Pyvis 네트워크 생성
+net = Network(height="700px", width="100%", directed=True, notebook=False)
+
+# 노드/에지 Pyvis로 변환
 net.from_nx(G)
 
-# 클릭 시 노드 정보 표시
+# 노드 색상과 툴팁
 for node in net.nodes:
-    node["title"] = G.nodes[node["id"]]["info"]
+    node["title"] = G.nodes[node["id"]]["info"]  # 클릭 시 정보 표시
     if G.nodes[node["id"]]["type"] == "reaction":
         node["color"] = "orange"
-    elif G.nodes[node["id"]]["type"] == "tech":
-        node["color"] = "lightgreen"
-    else:
-        node["color"] = "lightblue"
-
-# -------------------------------
-# 4. Streamlit에 출력
-net.show_buttons(filter_=['physics'])
-net.save_graph('network.html')
-st.components.v1.html(open('network.html','r',encoding='utf-8').read(), height=700)
-
-# -------------------------------
-# 5. 선택 노드 정보 표시
-st.sidebar.header("단계/반응 선택")
-selected_node = st.sidebar.selectbox("노드 선택", list(nodes.keys()))
-st.sidebar.write(f"**{selected_node}**")
-st.sidebar.write(nodes[selected_node]["info"])
-
+    elif G.nodes[node["id"]]["type]()
