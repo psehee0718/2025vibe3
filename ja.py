@@ -7,7 +7,7 @@ import streamlit.components.v1 as components
 
 # 페이지 설정
 st.set_page_config(page_title="죽음과 화학적 순환 시뮬레이션", layout="wide")
-st.title("죽음에서 생태계로: 생명체 분해와 인간 기술 시뮬레이션")
+st.title("죽음에서 생태계로: 생명체 분해와 기술적인 활용 살펴보기!")
 
 # 네트워크 생성
 G = nx.DiGraph()
