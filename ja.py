@@ -1,27 +1,21 @@
+streamlit
+networkx
+pyvis
 # streamlit_app.py
-
-# --------------------------------------
-# 1. 모듈 설치
-# Streamlit Cloud에서는 requirements.txt에 아래 추가:
-# streamlit
-# networkx
-# pyvis
 
 import streamlit as st
 import networkx as nx
 from pyvis.network import Network
 import streamlit.components.v1 as components
 
-# --------------------------------------
-# 2. 페이지 설정
+# 페이지 설정
 st.set_page_config(page_title="죽음과 화학적 순환 시뮬레이션", layout="wide")
-st.title("죽음에서 생태계로: 생명체 분해와 인간 기술 시뮬레이션")
+st.title("죽음에서 순환으로: 생명체 분해와 인간 기술 시뮬레이션")
 
-# --------------------------------------
-# 3. 네트워크 생성
+# 네트워크 생성
 G = nx.DiGraph()
 
-# 노드 정의 (단계 + 화학 반응 + 인간 기술)
+# 노드 정의
 nodes = {
     "생물학적 죽음": {"type":"stage", "info":"세포와 장기 기능 상실"},
     "단백질 분해": {"type":"reaction", "info":"Protein + H2O → Amino acids → NH3 → NO3-"},
@@ -29,7 +23,7 @@ nodes = {
     "탄수화물 분해": {"type":"reaction", "info":"Carbohydrates + O2 → CO2 + H2O"},
     "원소 순환": {"type":"stage", "info":"C, N, P 등 원소가 토양과 환경으로 순환"},
     "바이오연료": {"type":"tech", "info":"Methane, Ethanol, Butanol 생산 → 에너지 활용"},
-    "바이오소재": {"type":"tech", "info":"PLA, PHA 생분해성 고분자 개발"},
+    "바이오소재": {"type":"tech", "info":"PLA, PHA 생분해성 고분해 개발"},
     "그린 장례": {"type":"tech", "info":"알칼리 가수분해(Resomation)로 시신 분해"},
 }
 
@@ -37,7 +31,7 @@ nodes = {
 for node, attr in nodes.items():
     G.add_node(node, **attr)
 
-# 에지 추가 (흐름)
+# 에지 추가
 edges = [
     ("생물학적 죽음", "단백질 분해"),
     ("생물학적 죽음", "지방 분해"),
@@ -51,12 +45,11 @@ edges = [
 ]
 G.add_edges_from(edges)
 
-# --------------------------------------
-# 4. Pyvis 네트워크 생성
+# Pyvis 네트워크 생성
 net = Network(height="700px", width="100%", directed=True, notebook=False)
 net.from_nx(G)
 
-# 노드 색상과 툴팁 설정
+# 노드 색상/툴팁 설정
 for node in net.nodes:
     node["title"] = G.nodes[node["id"]]["info"]
     if G.nodes[node["id"]]["type"] == "reaction":
@@ -66,18 +59,17 @@ for node in net.nodes:
     else:
         node["color"] = "lightblue"
 
-# --------------------------------------
-# 5. HTML로 저장 후 Streamlit에 삽입
+# HTML로 저장 후 Streamlit 삽입
 html_file = "network.html"
-net.show(html_file)  # pyvis html 생성
+net.show(html_file)
 with open(html_file, 'r', encoding='utf-8') as f:
     html_content = f.read()
-
 components.html(html_content, height=700)
 
-# --------------------------------------
-# 6. 사이드바: 노드 선택 시 정보 표시
+# 사이드바: 선택한 노드 정보 표시
 st.sidebar.header("단계/반응 선택")
 selected_node = st.sidebar.selectbox("노드 선택", list(nodes.keys()))
 st.sidebar.write(f"**{selected_node}**")
 st.sidebar.write(nodes[selected_node]["info"])
+
+
