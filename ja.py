@@ -1,16 +1,16 @@
 # streamlit_app.py
+
 # --------------------------------------
-# 1. 필요한 모듈 설치
+# 1. 모듈 설치
 # Streamlit Cloud에서는 requirements.txt에 아래 추가:
-# pyvis
-# networkx
 # streamlit
+# networkx
+# pyvis
 
 import streamlit as st
 import networkx as nx
 from pyvis.network import Network
 import streamlit.components.v1 as components
-import os
 
 # --------------------------------------
 # 2. 페이지 설정
@@ -54,13 +54,30 @@ G.add_edges_from(edges)
 # --------------------------------------
 # 4. Pyvis 네트워크 생성
 net = Network(height="700px", width="100%", directed=True, notebook=False)
-
-# 노드/에지 Pyvis로 변환
 net.from_nx(G)
 
-# 노드 색상과 툴팁
+# 노드 색상과 툴팁 설정
 for node in net.nodes:
-    node["title"] = G.nodes[node["id"]]["info"]  # 클릭 시 정보 표시
+    node["title"] = G.nodes[node["id"]]["info"]
     if G.nodes[node["id"]]["type"] == "reaction":
         node["color"] = "orange"
-    elif G.nodes[node["id"]]["type]()
+    elif G.nodes[node["id"]]["type"] == "tech":
+        node["color"] = "lightgreen"
+    else:
+        node["color"] = "lightblue"
+
+# --------------------------------------
+# 5. HTML로 저장 후 Streamlit에 삽입
+html_file = "network.html"
+net.show(html_file)  # pyvis html 생성
+with open(html_file, 'r', encoding='utf-8') as f:
+    html_content = f.read()
+
+components.html(html_content, height=700)
+
+# --------------------------------------
+# 6. 사이드바: 노드 선택 시 정보 표시
+st.sidebar.header("단계/반응 선택")
+selected_node = st.sidebar.selectbox("노드 선택", list(nodes.keys()))
+st.sidebar.write(f"**{selected_node}**")
+st.sidebar.write(nodes[selected_node]["info"])
